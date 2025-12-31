@@ -24,7 +24,7 @@ if uploaded_file:
             df = pd.read_excel(uploaded_file)
         
         # --- โหมดที่ 1 ---
-        if mode == "ค้นหา THPKD1 (AU -> AE)":
+        if mode == "ค้นหา Return Part 1":
             if len(df.columns) >= 47:
                 mask = df.iloc[:, 46].astype(str).str.strip() == "THPKD1"
                 res = df[mask].copy()
