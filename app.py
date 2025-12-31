@@ -8,7 +8,7 @@ st.title("📦 DHL Filter (CSV & Excel Support)")
 # เมนูเลือกโหมด
 mode = st.sidebar.selectbox(
     "เลือกรูปแบบการกรองข้อมูล:",
-    ["ค้นหา THPKD1 (AU -> AE)", "ค้นหา Ageing 5 + O Shopping (B)"]
+    ["ค้นหา THPKD1", "ค้นหา Ageing"]
 )
 
 # เพิ่มนามสกุลไฟล์ให้รองรับทั้ง csv, xlsx, xls
