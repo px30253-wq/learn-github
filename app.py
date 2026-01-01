@@ -5,7 +5,6 @@ import pandas as pd
 st.set_page_config(page_title="DHL RETURN FILTER", layout="wide")
 
 st.title("📦 DHL Inventory Filter")
-st.write("อัปโหลดไฟล์เพื่อกรองข้อมูล")
 
 # 2. ช่องอัปโหลดไฟล์ (รับได้หลายไฟล์พร้อมกัน)
 uploaded_files = st.file_uploader(
