@@ -36,7 +36,7 @@ if uploaded_files:
 
                 # --- ส่วนที่ 1: Return Part 1 ---
                 if has_part1:
-                    st.subheader("🔍 1. Return (TH_RD_Ageing)")
+                    st.subheader("🔍 Return (TH_RD_Ageing)")
                     mask1 = df.iloc[:, 46].astype(str).str.strip() == "THPKD1"
                     res1 = df[mask1].copy()
                     
@@ -50,7 +50,7 @@ if uploaded_files:
 
                 # --- ส่วนที่ 2: Return Part 2 ---
                 if has_part2:
-                    st.subheader("🔍 2. Return (inventory_report)")
+                    st.subheader("🔍 Return (inventory_report)")
                     res2 = df[mask_p2].copy()
                     
                     # จัดการย้ายคอลัมน์
