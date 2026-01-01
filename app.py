@@ -19,7 +19,7 @@ if uploaded_file:
 
         # --- ส่วนที่ 1: กรองแบบ Return Part 1 (AU -> AE) ---
         st.divider() # เส้นคั่น
-        st.subheader("🔍 ผลลัพธ์: Return Part 1 (THPKD1)")
+        st.subheader("🔍 ผลลัพธ์: Return (TH_RD_Ageing)")
         
         if len(df.columns) >= 47:
             mask1 = df.iloc[:, 46].astype(str).str.strip() == "THPKD1"
@@ -33,11 +33,11 @@ if uploaded_file:
             else:
                 st.warning("ไม่พบข้อมูล THPKD1 ในคอลัมน์ AU")
         else:
-            st.error("ไฟล์มีคอลัมน์ไม่ถึง AU (47)")
+            st.error("ไม่พบข้อมูล")
 
         # --- ส่วนที่ 2: กรองแบบ Return Part 2 (Ageing 5 + O Shopping) ---
         st.divider() # เส้นคั่น
-        st.subheader("🔍 ผลลัพธ์: Return Part 2 (Ageing 5 & O Shopping)")
+        st.subheader("🔍 ผลลัพธ์: Return Part 2 (inventory_report)")
         
         if len(df.columns) >= 14:
             # กรอง M=12 เป็น 5 และ N=13 เป็น O Shopping
@@ -51,9 +51,9 @@ if uploaded_file:
                 st.success(f"พบข้อมูล Part 2 ทั้งหมด {len(res2)} รายการ")
                 st.dataframe(res2, use_container_width=True)
             else:
-                st.warning("ไม่พบรายการที่ตรงเงื่อนไข (Ageing 5 และ O Shopping)")
+                st.warning("ไม่พบรายการที่ตรงเงื่อนไข")
         else:
-            st.error("ไฟล์มีคอลัมน์ไม่ถึง N (14)")
+            st.error("ไม่พบรายการที่ตรงเงื่อนไข")
 
     except Exception as e:
         st.error(f"❌ เกิดข้อผิดพลาด: {e}")
