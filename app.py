@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="DHL Inventory Filter", layout="wide")
+st.set_page_config(page_title="DHL RETURN FILTER", layout="wide")
 
 st.title("📦 DHL Inventory Filter")
 st.write("อัปโหลดไฟล์เพื่อกรองข้อมูล")
