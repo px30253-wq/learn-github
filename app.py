@@ -5,11 +5,11 @@ import pandas as pd
 st.set_page_config(page_title="DHL Inventory Filter", layout="wide")
 
 st.title("📦 DHL Inventory Filter")
-st.write("อัปโหลดไฟล์เพื่อกรองข้อมูล Part 1 และ Part 2 (ระบบจะแสดงเฉพาะไฟล์ที่มีข้อมูลตรงเงื่อนไขเท่านั้น)")
+st.write("อัปโหลดไฟล์เพื่อกรองข้อมูล")
 
 # 2. ช่องอัปโหลดไฟล์ (รับได้หลายไฟล์พร้อมกัน)
 uploaded_files = st.file_uploader(
-    "เลือกไฟล์ Inventory Report", 
+    "เลือกไฟล์", 
     type=["csv", "xlsx", "xls"],
     accept_multiple_files=True
 )
@@ -36,7 +36,7 @@ if uploaded_files:
 
                 # --- ส่วนที่ 1: Return Part 1 ---
                 if has_part1:
-                    st.subheader("🔍 1. Return Part 1 (THPKD1)")
+                    st.subheader("🔍 1. Return (TH_RD_Ageing)")
                     mask1 = df.iloc[:, 46].astype(str).str.strip() == "THPKD1"
                     res1 = df[mask1].copy()
                     
@@ -50,7 +50,7 @@ if uploaded_files:
 
                 # --- ส่วนที่ 2: Return Part 2 ---
                 if has_part2:
-                    st.subheader("🔍 2. Return Part 2 (Ageing 5 & O Shopping)")
+                    st.subheader("🔍 2. Return (inventory_report)")
                     res2 = df[mask_p2].copy()
                     
                     # จัดการย้ายคอลัมน์
