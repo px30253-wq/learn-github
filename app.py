@@ -1,70 +1,65 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 
 # 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="DHL RETURN FILTER", layout="wide")
+st.set_page_config(page_title="SMS DELIVERY ALERT", layout="wide")
 
-st.title("📦 DHL RETURN FILTER")
+st.title("📱 ระบบกรองข้อมูลแจ้งเตือน SMS")
+st.write("ฟิลเตอร์เฉพาะรายการ DELIVERY_FAILED ของวันพรุ่งนี้")
 
+# 2. ส่วนอัปโหลดไฟล์
+uploaded_file = st.file_uploader("อัปโหลดไฟล์ Inventory Report", type=["csv", "xlsx", "xls"])
 
-# 2. ช่องอัปโหลดไฟล์ (รับได้หลายไฟล์พร้อมกัน)
-uploaded_files = st.file_uploader(
-    "เลือกไฟล์", 
-    type=["csv", "xlsx", "xls"],
-    accept_multiple_files=True
-)
+if uploaded_file:
+    try:
+        # อ่านไฟล์
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
+        else:
+            df = pd.read_excel(uploaded_file)
 
-if uploaded_files:
-    for uploaded_file in uploaded_files:
-        try:
-            # อ่านไฟล์
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file, encoding='utf-8-sig')
-            else:
-                df = pd.read_excel(uploaded_file)
+        # 3. เตรียมตัวแปรวันที่ (วันพรุ่งนี้)
+        # ตัวอย่าง: ถ้าวันนี้วันที่ 5 โค้ดจะหา 06-Jan-2026
+        tomorrow = datetime.now() + timedelta(days=1)
+        tomorrow_str = tomorrow.strftime('%d-%b-%Y') 
 
-            # ตรวจสอบว่าไฟล์มีข้อมูลหรือไม่ก่อนแสดงหัวข้อไฟล์
-            has_part1 = len(df.columns) >= 47 and not df[df.iloc[:, 46].astype(str).str.strip() == "THPKD1"].empty
+        # 4. การกรองข้อมูล (Filtering)
+        # คอลัมน์ D (index 3) = Parcel Status
+        # คอลัมน์ F (index 5) = Next Delivery Date
+        
+        # ตรวจสอบชื่อคอลัมน์จริงเพื่อป้องกัน Error จากการสะกดผิดในไฟล์
+        col_status = df.columns[3]
+        col_date = df.columns[5]
+
+        mask = (df[col_status] == 'DELIVERY_FAILED') & (df[col_date].astype(str).str.strip() == tomorrow_str)
+        filtered_df = df[mask].copy()
+
+        # 5. แสดงผล
+        if not filtered_df.empty:
+            st.success(f"✅ พบข้อมูลสำหรับวันพรุ่งนี้ ({tomorrow_str}) ทั้งหมด {len(filtered_df)} รายการ")
             
-            mask_p2 = (df.iloc[:, 12].astype(str).str.contains('5')) & \
-                      (df.iloc[:, 13].astype(str).str.strip() == "O Shopping Co.,Ltd.") if len(df.columns) >= 14 else pd.Series([False]*len(df))
-            has_part2 = not df[mask_p2].empty if len(df.columns) >= 14 else False
+            # เลือกเฉพาะคอลัมน์ B, E, F, P (Index 1, 4, 5, 15)
+            display_cols = [1, 4, 5, 15]
+            final_df = filtered_df.iloc[:, display_cols]
+            
+            # ตั้งชื่อคอลัมน์ใหม่ให้อ่านง่าย
+            final_df.columns = ['Parcel ID', 'Failure Reason', 'Next Delivery Date', 'TourID']
+            
+            # แสดงตารางข้อมูล
+            st.dataframe(final_df, use_container_width=True)
 
-            # ถ้าไฟล์นี้มีข้อมูลอย่างใดอย่างหนึ่ง ถึงจะแสดงชื่อไฟล์และตาราง
-            if has_part1 or has_part2:
-                st.markdown(f"## 📄 ไฟล์: {uploaded_file.name}")
-
-                # --- ส่วนที่ 1: Return Part 1 ---
-                if has_part1:
-                    st.subheader("🔍 Return (TH_RD_Ageing)")
-                    mask1 = df.iloc[:, 46].astype(str).str.strip() == "THPKD1"
-                    res1 = df[mask1].copy()
-                    
-                    # จัดการย้ายคอลัมน์
-                    cols1 = res1.columns.tolist()
-                    ae_col = cols1.pop(30)
-                    res1 = res1[[ae_col] + cols1]
-                    
-                    st.success(f"พบข้อมูล Part 1 จำนวน {len(res1)} รายการ")
-                    st.dataframe(res1, use_container_width=True)
-
-                # --- ส่วนที่ 2: Return Part 2 ---
-                if has_part2:
-                    st.subheader("🔍 Return (inventory_report)")
-                    res2 = df[mask_p2].copy()
-                    
-                    # จัดการย้ายคอลัมน์
-                    cols2 = res2.columns.tolist()
-                    b_col = cols2.pop(1)
-                    res2 = res2[[b_col] + cols2]
-                    
-                    st.success(f"พบข้อมูล Part 2 จำนวน {len(res2)} รายการ")
-                    st.dataframe(res2, use_container_width=True)
+            # 6. สร้างข้อความสำหรับ Copy ไปส่ง SMS
+            st.subheader("💬 ข้อความสำหรับส่ง SMS")
+            for _, row in final_df.iterrows():
+                # คุณสามารถปรับแก้ข้อความใน f-string นี้ได้ตามต้องการ
+                sms_text = f"พัสดุ {row['Parcel ID']} จัดส่งไม่สำเร็จเนื่องจาก {row['Failure Reason']} จะจัดส่งใหม่วันที่ {row['Next Delivery Date']} (สายส่ง: {row['TourID']})"
+                st.code(sms_text) # ใช้ st.code เพื่อให้กดคลิก copy ได้ง่าย
                 
-                st.markdown("---")
+        else:
+            st.warning(f"❌ ไม่พบข้อมูล DELIVERY_FAILED ที่ระบุวันส่งใหม่เป็นวันที่ {tomorrow_str}")
 
-        except Exception:
-            # หากไฟล์มีปัญหาเรื่อง Format หรืออ่านไม่ได้ จะข้ามไปเงียบๆ ไม่โชว์ Error สีแดง
-            pass
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาด: {e}")
 else:
-    st.info("💡 กรุณาอัปโหลดไฟล์เพื่อเริ่มการทำงาน")
+    st.info("💡 กรุณาอัปโหลดไฟล์ Excel หรือ CSV เพื่อเริ่มการกรองข้อมูล")
